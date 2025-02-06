@@ -2,6 +2,9 @@ name: Sync Teams to Port.io
 
 on:
   workflow_dispatch:      # Allows manual trigger
+  push:
+    branches:
+      - main
 
 jobs:
   sync:

@@ -57,6 +57,7 @@ async function getAllTeams(octokit, org) {
 
 function mapTeamsToUsers(teams) {
   const users = {};
+  console.log(teams);
   teams.forEach(team => {
     team.members.nodes.forEach(user => {
       if (!users[user.id]) {
@@ -69,6 +70,7 @@ function mapTeamsToUsers(teams) {
       }
       users[user.id].relations.githubTeams.push(team.databaseId.toString());
     });
+    console.log(team);
   });
   return { entities: Object.values(users) };
 }

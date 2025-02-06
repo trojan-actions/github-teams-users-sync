@@ -68,7 +68,7 @@ function mapTeamsToUsers(teams) {
           relations: { teams: [] }
         };
       }
-      users[user.id].relations.githubTeams.push(team.databaseId.toString());
+      users[user.id].relations.teams.push(team.databaseId.toString());
     });
     console.log(team);
   });

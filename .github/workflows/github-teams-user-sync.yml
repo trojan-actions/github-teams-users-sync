@@ -1,0 +1,17 @@
+name: Sync Teams to Port.io
+
+on:
+  workflow_dispatch:      # Allows manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Sync GitHub Teams to Port.io
+        uses: your-org/github-teams-port-sync@v1
+        with:
+          token: ${{ secrets.MY_PERSONAL_ACCESS_TOKEN }}
+          org: 'trojan-actions'
+          port_client_id: ${{ secrets.PORT_CLIENT_ID }}
+          port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}

@@ -1,8 +1,8 @@
-import axios from 'axios';
-import * as core from '@actions/core';
-import { GitHub } from '@actions/github/lib/utils';
-import { retry } from "@octokit/plugin-retry";
-import { throttling } from "@octokit/plugin-throttling";
+const axios = require('axios');
+const core = require('@actions/core');
+const { GitHub } = require('@actions/github/lib/utils');
+const { retry } = require('@octokit/plugin-retry');
+const { throttling } = require('@octokit/plugin-throttling');
 
 const MyOctokit = GitHub.plugin(throttling, retry);
 const token = core.getInput("token", { required: true });

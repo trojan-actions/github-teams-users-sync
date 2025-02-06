@@ -70,7 +70,6 @@ async function fetchGitHubTeams() {
       cursor = response.organization.teams.pageInfo.endCursor;
     }
   } catch (error) {
-    console.error("❌ Failed to fetch GitHub teams:", error);
     throw error;
   }
 
@@ -96,7 +95,6 @@ function formatDataForPort(teams) {
       });
     });
   } catch (error) {
-    console.error("❌ Error formatting data for Port.io:", error);
     throw error;
   }
   return { entities: Object.values(githubUsers) };
@@ -110,8 +108,7 @@ async function getPortAccessToken() {
     });
     return response.data.accessToken;
   } catch (error) {
-    console.error("❌ Failed to get Port.io access token:", error.response?.data || error.message);
-    throw error;
+    console.error("❌ Failed to get Port.io access token:", error.message);
   }
 }
 
@@ -141,9 +138,6 @@ async function sendDataToPort(portAccessToken, formattedData) {
     const response = await sendDataToPort(portAccessToken, formattedData);
 
   } catch (error) {
-    console.error("❌ Error in GitHub Action:", {
-      message: error.message
-    });
     core.setFailed(error.message);
   }
 })();

@@ -14,25 +14,20 @@ const PORT_CLIENT_SECRET = core.getInput("port_client_secret", { required: true 
 const API_URL = "https://api.getport.io/v1";
 const blueprintId = "_team";
 
-// Initialize GitHub API client with throttling
 const octokit = new MyOctokit({
   auth: token,
   request: { retries: 3, retryAfter: 180 },
   throttle: {
     onRateLimit: (retryAfter, options) => {
-      console.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
-      if (options.request.retryCount === 0) {
-        console.info(`Retrying after ${retryAfter} seconds!`);
-        return true;
-      }
+      console.warn(`⚠️ Rate limit hit for request ${options.method} ${options.url}. Retrying after ${retryAfter} seconds.`);
+      if (options.request.retryCount === 0) return true;
     },
     onAbuseLimit: (retryAfter, options) => {
-      console.warn(`Abuse detected for request ${options.method} ${options.url}`);
+      console.warn(`🚨 Abuse detection triggered for request ${options.method} ${options.url}. Waiting ${retryAfter} seconds before retrying.`);
     },
   },
 });
 
-// GraphQL query to fetch GitHub teams and users
 const GET_TEAMS_QUERY = `
   query ($org: String!, $cursor: String) {
     organization(login: $org) {
@@ -58,85 +53,87 @@ const GET_TEAMS_QUERY = `
   }
 `;
 
-// Fetch all GitHub teams and their members
 async function fetchGitHubTeams() {
   let hasNextPage = true;
   let cursor = null;
   let teams = [];
 
-  while (hasNextPage) {
-    const response = await octokit.graphql(GET_TEAMS_QUERY, { org, cursor });
-    const teamNodes = response.organization.teams.nodes;
+  try {
+    while (hasNextPage) {
+      const response = await octokit.graphql(GET_TEAMS_QUERY, { org, cursor });
+      if (!response.organization) throw new Error("Invalid GitHub response: No organization found");
 
-    teams = [...teams, ...teamNodes];
+      const teamNodes = response.organization.teams.nodes;
+      teams = [...teams, ...teamNodes];
 
-    hasNextPage = response.organization.teams.pageInfo.hasNextPage;
-    cursor = response.organization.teams.pageInfo.endCursor;
+      hasNextPage = response.organization.teams.pageInfo.hasNextPage;
+      cursor = response.organization.teams.pageInfo.endCursor;
+    }
+  } catch (error) {
+    console.error("❌ Failed to fetch GitHub teams:", error);
+    throw error;
   }
 
   return teams;
 }
 
-// Format data for Port.io API
 function formatDataForPort(teams) {
   let githubUsers = {};
-
-  teams.forEach((team) => {
-    const teamId = team.databaseId.toString();
-
-    team.members.nodes.forEach((user) => {
-      const userId = user.id; // Using GitHub user ID as identifier
-
-      if (!githubUsers[userId]) {
-        githubUsers[userId] = {
-          identifier: userId,
-          title: user.login,
-          blueprint: "githubUser",
-          relations: { githubTeams: [] },
-        };
-      }
-
-      githubUsers[userId].relations.githubTeams.push(teamId);
+  try {
+    teams.forEach((team) => {
+      const teamId = team.databaseId.toString();
+      team.members.nodes.forEach((user) => {
+        const userId = user.id;
+        if (!githubUsers[userId]) {
+          githubUsers[userId] = {
+            identifier: userId,
+            title: user.login,
+            blueprint: "githubUser",
+            relations: { githubTeams: [] },
+          };
+        }
+        githubUsers[userId].relations.githubTeams.push(teamId);
+      });
     });
-  });
-
+  } catch (error) {
+    console.error("❌ Error formatting data for Port.io:", error);
+    throw error;
+  }
   return { entities: Object.values(githubUsers) };
 }
 
-// Authenticate with Port.io API
 async function getPortAccessToken() {
-  const response = await axios.post(`${API_URL}/auth/access_token`, {
-    clientId: PORT_CLIENT_ID,
-    clientSecret: PORT_CLIENT_SECRET,
-  });
-
-  return response.data.accessToken;
+  try {
+    const response = await axios.post(`${API_URL}/auth/access_token`, {
+      clientId: PORT_CLIENT_ID,
+      clientSecret: PORT_CLIENT_SECRET,
+    });
+    return response.data.accessToken;
+  } catch (error) {
+    console.error("❌ Failed to get Port.io access token:", error.response?.data || error.message);
+    throw error;
+  }
 }
 
-// Send data to Port.io
 async function sendDataToPort(portAccessToken, formattedData) {
-  const config = {
-    headers: { Authorization: `Bearer ${portAccessToken}` },
-  };
-
-  const response = await axios.post(
-    `${API_URL}/blueprints/${blueprintId}/entities?upsert=true`,
-    formattedData,
-    config
-  );
-
-  return response.data;
+  try {
+    const response = await axios.post(
+      `${API_URL}/blueprints/${blueprintId}/entities?upsert=true`,
+      formattedData,
+      { headers: { Authorization: `Bearer ${portAccessToken}` } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("❌ Failed to send data to Port.io:", error.response?.data || error.message);
+    throw error;
+  }
 }
 
-// Main function to run the GitHub Action
 (async () => {
   try {
     console.log("🔄 Fetching GitHub teams and users...");
     const teams = await fetchGitHubTeams();
-    
-    if (!teams || teams.length === 0) {
-      throw new Error("No teams found");
-    }
+    if (!teams.length) throw new Error("No GitHub teams found");
 
     console.log("🔄 Formatting data for Port.io...");
     const formattedData = formatDataForPort(teams);
@@ -147,17 +144,13 @@ async function sendDataToPort(portAccessToken, formattedData) {
     console.log("🚀 Sending data to Port.io...");
     const response = await sendDataToPort(portAccessToken, formattedData);
 
-    if (!response) {
-      throw new Error("No response received from Port.io");
-    }
-
-    console.log(" Successfully updated Port.io with GitHub teams!");
+    console.log("✅ Successfully updated Port.io with GitHub teams!");
     console.log("Response:", JSON.stringify(response, null, 2));
   } catch (error) {
-    console.error("❌ Error:", {
+    console.error("❌ Error in GitHub Action:", {
       message: error.message,
       stack: error.stack,
-      details: error.response?.data
+      details: error.response?.data || "No additional error details",
     });
     core.setFailed(error.message);
   }

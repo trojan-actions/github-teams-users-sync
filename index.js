@@ -5,7 +5,7 @@ const { retry } = require('@octokit/plugin-retry');
 const { throttling } = require('@octokit/plugin-throttling');
 
 const API_URL = "https://api.getport.io/v1";
-const BLUEPRINT_ID = "_team";
+const BLUEPRINT_ID = "githubUser";
 
 async function initOctokit(token) {
   const MyOctokit = GitHub.plugin(throttling, retry);

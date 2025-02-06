@@ -62,7 +62,7 @@ function mapTeamsToUsers(teams) {
     team.members.nodes.forEach(user => {
       if (!users[user.id]) {
         users[user.id] = {
-          identifier: user.id,
+          identifier: user.login,
           title: user.login,
           blueprint: "githubUser",
           relations: { githubTeams: [] }

@@ -13,9 +13,23 @@ async function initOctokit(token) {
     auth: token,
     request: { retries: 3 },
     throttle: {
-      onRateLimit: (retryAfter, options) => options.request.retryCount === 0,
-      onAbuseLimit: () => false,
-    },
+      onRateLimit: (retryAfter, options) => {
+        core.warning(`Request quota exhausted for ${options.method} ${options.url}`);
+        if (options.request.retryCount <= 2) {
+          core.info(`Retrying after ${retryAfter} seconds!`);
+          return true;
+        }
+        return false;
+      },
+      onSecondaryRateLimit: (retryAfter, options) => {
+        core.warning(`Secondary rate limit hit for ${options.method} ${options.url}`);
+        return true;
+      },
+      onAbuseLimit: (retryAfter, options) => {
+        core.warning(`Abuse limit hit for ${options.method} ${options.url}`);
+        return false;
+      }
+    }
   });
 }
 

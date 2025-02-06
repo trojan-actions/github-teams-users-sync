@@ -1,28 +1,18 @@
 {
   "name": "github-action-add-users",
   "version": "1.0.0",
-  "description": "> A GitHub Action that synchronizes teams and user memberships from GitHub to Port.io for enhanced identity mapping.",
-  "main": "index.js",
   "type": "module",
+  "scripts": {
+    "build": "ncc build index.js --out dist --license licenses.txt --minify"
+  },
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@actions/github": "^5.0.0",
-    "axios": "^1.3.4",
     "@octokit/plugin-retry": "^4.1.3",
-    "@octokit/plugin-throttling": "^5.0.1"
+    "@octokit/plugin-throttling": "^5.0.1",
+    "axios": "^1.3.4"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/trojan-actions/github-teams-users-sync.git"
-  },
-  "scripts": {
-    "build": "npx @vercel/ncc build index.js --out dist --license licenses.txt --quiet --minify"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/trojan-actions/github-teams-users-sync/issues"
-  },
-  "homepage": "https://github.com/trojan-actions/github-teams-users-sync#readme"
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.3"
+  }
 }

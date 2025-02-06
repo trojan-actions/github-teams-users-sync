@@ -1,6 +1,6 @@
-import axios from "axios";
-import core from "@actions/core";
-import { GitHub } from "@actions/github/lib/utils";
+import axios from 'axios';
+import * as core from '@actions/core';
+import { GitHub } from '@actions/github/lib/utils';
 import { retry } from "@octokit/plugin-retry";
 import { throttling } from "@octokit/plugin-throttling";
 

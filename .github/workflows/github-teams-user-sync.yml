@@ -11,8 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install dependencies
-        run: npm install
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - run: npm run build
       - name: Sync GitHub Teams to Port.io
         uses: trojan-actions/github-teams-users-sync@main
         with:

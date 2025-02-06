@@ -85,6 +85,7 @@ async function getPortToken(clientId, clientSecret) {
 }
 
 async function updatePort(token, data) {
+  console.log(data);
   const http = new HttpClient('port-action', [], {
     headers: {
       Authorization: `Bearer ${token}`,

@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Sync GitHub Teams to Port.io
-        uses: your-org/github-teams-port-sync@v1
+        uses: trojan-actions/github-teams-port-sync@main
         with:
           token: ${{ secrets.MY_PERSONAL_ACCESS_TOKEN }}
           org: 'trojan-actions'

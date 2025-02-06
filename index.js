@@ -131,26 +131,18 @@ async function sendDataToPort(portAccessToken, formattedData) {
 
 (async () => {
   try {
-    console.log("🔄 Fetching GitHub teams and users...");
     const teams = await fetchGitHubTeams();
     if (!teams.length) throw new Error("No GitHub teams found");
 
-    console.log("🔄 Formatting data for Port.io...");
     const formattedData = formatDataForPort(teams);
 
-    console.log("🔄 Authenticating with Port.io...");
     const portAccessToken = await getPortAccessToken();
 
-    console.log("🚀 Sending data to Port.io...");
     const response = await sendDataToPort(portAccessToken, formattedData);
 
-    console.log("✅ Successfully updated Port.io with GitHub teams!");
-    console.log("Response:", JSON.stringify(response, null, 2));
   } catch (error) {
     console.error("❌ Error in GitHub Action:", {
-      message: error.message,
-      stack: error.stack,
-      details: error.response?.data || "No additional error details",
+      message: error.message
     });
     core.setFailed(error.message);
   }

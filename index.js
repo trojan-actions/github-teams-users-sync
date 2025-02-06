@@ -65,14 +65,14 @@ function mapTeamsToUsers(teams) {
           identifier: user.login,
           title: user.login,
           blueprint: "githubUser",
-          relations: { githubTeams: [] }
+          relations: { teams: [] }
         };
       }
       users[user.id].relations.githubTeams.push(team.databaseId.toString());
     });
     console.log(team);
   });
-  return { entities: Object.values(users) };
+  return Object.values(users);
 }
 
 async function getPortToken(clientId, clientSecret) {
